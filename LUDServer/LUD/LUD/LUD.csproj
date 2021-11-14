@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Folder Include="Math\" />
+    <Folder Include="Messages\" />
+    <Folder Include="Utilities\" />
+  </ItemGroup>
+
+	<Target Name="PostBuild" AfterTargets="PostBuildEvent">
+		<Exec Command="$(SolutionDir)\Weaver\bin\Debug\net6.0\Weaver.exe $(TargetPath)" />
+		<Error Condition="$(ExitCode) == 1" />
+	</Target>
+
+</Project>
