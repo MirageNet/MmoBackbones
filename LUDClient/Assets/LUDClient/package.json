@@ -1,0 +1,12 @@
+{
+    "name": "com.miragenet.LUDClient",
+    "displayName": "LUDClient",
+    "version": ".0.1",
+    "unity": "2021.2",
+    "description": "A plugin for Mirage to connect LudServer to unity.",
+    "author": "Mirage",
+    "dependencies": {
+        "com.miragenet.mirage": "112.0.0",
+        "com.cysharp.unitask": "2.0.36"
+    }
+}
