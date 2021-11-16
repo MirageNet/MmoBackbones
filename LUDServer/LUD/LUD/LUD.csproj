@@ -17,7 +17,7 @@
   </ItemGroup>
 
 	<Target Name="PostBuild" AfterTargets="PostBuildEvent">
-		<Exec Command="$(SolutionDir)Weaver\bin\Debug\net6.0\Weaver.exe $(TargetPath)" />
+		<Exec Command="..\Mirage.Weaver\bin\Debug\net6.0\Mirage.Weaver.exe $(TargetPath)" />
 		<Error Condition="$(ExitCode) == 1" />
 	</Target>
 
