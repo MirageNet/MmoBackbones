@@ -1,19 +1,39 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <OutputType>Exe</OutputType>
-    <TargetFramework>net6.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
+	  <OutputType>Exe</OutputType>
+	  <TargetFramework>net6.0</TargetFramework>
+	  <RootNamespace>MasterServer</RootNamespace>
+	  <AssemblyVersion>0.0.1.0</AssemblyVersion>
+	  <FileVersion>0.0.1.0</FileVersion>
+	  <Version>0.0.1</Version>
+	  <NeutralLanguage>en</NeutralLanguage>
+	  <DebugType>portable</DebugType>
+	  <Nullable>enable</Nullable>
+	  <RunPostBuildEvent>OnBuildSuccess</RunPostBuildEvent>
+	  <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
   </PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+		<OutputPath>..\Builds\Server\Master Server</OutputPath>
+		<Optimize>true</Optimize>
+		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+		<ProduceReferenceAssembly>false</ProduceReferenceAssembly>
+		<AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+		<PlatformTarget>x64</PlatformTarget>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+		<OutputPath>..\Builds\Server\Master Server</OutputPath>
+		<Optimize>true</Optimize>
+		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+		<ProduceReferenceAssembly>false</ProduceReferenceAssembly>
+		<AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+		<PlatformTarget>x64</PlatformTarget>
+	</PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\LUD\LUD.csproj" />
   </ItemGroup>
-
-	<Target Name="PostBuild" AfterTargets="PostBuildEvent">
-		<Exec Command="$(SolutionDir)\Weaver\bin\Debug\net6.0\Weaver.exe $(TargetPath)" />
-		<Error Condition="$(ExitCode) == 1" />
-	</Target>
 
 </Project>

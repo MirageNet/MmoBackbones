@@ -14,8 +14,8 @@ namespace Mirage.Weaver
         public Writers(ModuleDefinition module, IWeaverLogger logger) : base(module, logger) { }
 
         protected override string FunctionTypeLog => "write function";
-        protected override Expression<Action> ArrayExpression => () => CollectionExtensions.WriteArray<byte>(default, default);
-        protected override Expression<Action> ListExpression => () => CollectionExtensions.WriteList<byte>(default, default);
+        protected override Expression<Action> ArrayExpression => () => Mirage.Serialization.CollectionExtensions.WriteArray<byte>(default, default);
+        protected override Expression<Action> ListExpression => () => Mirage.Serialization.CollectionExtensions.WriteList<byte>(default, default);
         protected override Expression<Action> NullableExpression => () => SystemTypesExtensions.WriteNullable<byte>(default, default);
 
         protected override MethodReference GenerateEnumFunction(TypeReference typeReference)
@@ -126,7 +126,7 @@ namespace Mirage.Weaver
 
         protected override MethodReference GenerateSegmentFunction(TypeReference typeReference, TypeReference elementType)
         {
-            Expression<Action> segmentExpression = () => CollectionExtensions.WriteArraySegment<byte>(default, default);
+            Expression<Action> segmentExpression = () => Mirage.Serialization.CollectionExtensions.WriteArraySegment<byte>(default, default);
             return GenerateCollectionFunction(typeReference, elementType, segmentExpression);
         }
         protected override MethodReference GenerateCollectionFunction(TypeReference typeReference, TypeReference elementType, Expression<Action> genericExpression)

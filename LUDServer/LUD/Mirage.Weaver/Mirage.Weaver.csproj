@@ -4,6 +4,7 @@
     <TargetFramework>net6.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <OutputType>Exe</OutputType>
   </PropertyGroup>
 
   <ItemGroup>
@@ -12,7 +13,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Mirage.Core\Mirage.Core.csproj" />
-    <ProjectReference Include="..\Mirage.Serialization\Mirage.Serialization.csproj" />
   </ItemGroup>
 
 </Project>

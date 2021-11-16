@@ -14,8 +14,8 @@ namespace Mirage.Weaver
 
         protected override string FunctionTypeLog => "read function";
 
-        protected override Expression<Action> ArrayExpression => () => CollectionExtensions.ReadArray<byte>(default);
-        protected override Expression<Action> ListExpression => () => CollectionExtensions.ReadList<byte>(default);
+        protected override Expression<Action> ArrayExpression => () => Mirage.Serialization.CollectionExtensions.ReadArray<byte>(default);
+        protected override Expression<Action> ListExpression => () => Mirage.Serialization.CollectionExtensions.ReadList<byte>(default);
         protected override Expression<Action> NullableExpression => () => SystemTypesExtensions.ReadNullable<byte>(default);
 
         protected override MethodReference GenerateEnumFunction(TypeReference typeReference)
