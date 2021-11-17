@@ -7,7 +7,7 @@ namespace LUD.Core
     {
         public readonly Dictionary<byte, HashSet<INetworkPlayer>> RegionServers = new();
 
-        protected override void InvokeHandler(INetworkPlayer player, int msgType, NetworkReader reader)
+        protected override void InvokeHandler(INetworkPlayer player, int msgType, NetworkReader reader, ArraySegment<byte> packet)
         {
             if (messageHandlers.TryGetValue(msgType, out NetworkMessageDelegate msgDelegate))
             {
@@ -21,7 +21,7 @@ namespace LUD.Core
                 {
                     foreach (INetworkPlayer server in servers)
                     {
-                        //TODO Implement way to send message to the server's
+                        player.Send(packet);
 
                         LogFactory.Log($"Passing information along to server: {server.Connection}", LogType.Log);
                     }

@@ -83,7 +83,7 @@ namespace Mirage
         }
 
 
-        protected virtual void InvokeHandler(INetworkPlayer player, int msgType, NetworkReader reader)
+        protected virtual void InvokeHandler(INetworkPlayer player, int msgType, NetworkReader reader, ArraySegment<byte> packet)
         {
             if (messageHandlers.TryGetValue(msgType, out NetworkMessageDelegate msgDelegate))
             {
@@ -121,7 +121,7 @@ namespace Mirage
                 try
                 {
                     int msgType = MessagePacker.UnpackId(networkReader);
-                    InvokeHandler(player, msgType, networkReader);
+                    InvokeHandler(player, msgType, networkReader, packet);
                 }
                 catch (InvalidDataException ex)
                 {
