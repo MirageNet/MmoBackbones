@@ -3,18 +3,15 @@ using Mirage;
 
 namespace LUD.Messages
 {
-    public class AuthenticatorMessages
+    [NetworkMessage]
+    public struct ServerAuthCode
     {
-        [NetworkMessage]
-        public struct ServerAuthCode
-        {
-            public string AuthenticationCode;
-            public RegionDataInfo ServerInfo;
-        }
+        public string AuthenticationCode;
+        public ServerDataInfo ServerInfo;
+    }
 
-        [NetworkMessage]
-        public struct ServerRequestAuthCode
-        {
-        }
+    [NetworkMessage]
+    public struct ServerAcceptAuthCode
+    {
     }
 }

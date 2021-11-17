@@ -14,8 +14,8 @@ namespace LUD.Core
     {
         #region Fields
 
-        private readonly Dictionary<byte, Dictionary<byte, List<INetworkPlayer>>> _regionServers = new();
         private IConfiguration? _configuration;
+        private readonly MasterServerMessageHandler _messageHandler = new MasterServerMessageHandler(true);
         private NetworkServer? _server;
 
         #endregion
@@ -27,18 +27,17 @@ namespace LUD.Core
         /// </summary>
         /// <param name="data"></param>
         /// <param name="player"></param>
-        private void OnServerHasAuthenticated(AuthenticatorMessages.ServerAuthCode data, INetworkPlayer player)
+        private void OnServerHasAuthenticated(ServerAuthCode data, INetworkPlayer player)
         {
-            if (!_regionServers.ContainsKey(data.ServerInfo.ServerId))
+            if (!_messageHandler.RegionServers.ContainsKey(data.ServerInfo.ServerId))
             {
-                _regionServers.Add(data.ServerInfo.ServerId, new Dictionary<byte, List<INetworkPlayer>>());
+                _messageHandler.RegionServers.Add(data.ServerInfo.ServerId, new HashSet<INetworkPlayer>());
 
-                _regionServers[data.ServerInfo.ServerId]
-                    .Add(data.ServerInfo.RegionId, new List<INetworkPlayer> { player });
+                _messageHandler.RegionServers[data.ServerInfo.ServerId].Add(player);
             }
             else
             {
-                _regionServers[data.ServerInfo.ServerId][data.ServerInfo.RegionId].Add(player);
+                _messageHandler.RegionServers[data.ServerInfo.ServerId].Add(player);
             }
         }
 
@@ -100,7 +99,7 @@ namespace LUD.Core
 
             _server = new NetworkServer { SocketFactory = socketFactory, authenticator = authenticator };
 
-            _server.StartServer();
+            _server.StartServer(_messageHandler);
         }
 
         /// <summary>

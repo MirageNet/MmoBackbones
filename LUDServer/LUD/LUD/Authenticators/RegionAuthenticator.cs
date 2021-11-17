@@ -11,7 +11,7 @@ namespace LUD.Authenticators
 
         private IConfiguration? _configuration;
 
-        public Action<AuthenticatorMessages.ServerAuthCode, INetworkPlayer> ServerHasAuthenticated;
+        public Action<ServerAuthCode, INetworkPlayer> ServerHasAuthenticated;
 
         #endregion
 
@@ -22,14 +22,17 @@ namespace LUD.Authenticators
         /// </summary>
         /// <param name="player">The server that sent the correct message back.</param>
         /// <param name="message">The data being sent from regional server to allow connecting.</param>
-        private void OnRegionServerRequestConnection(INetworkPlayer player, AuthenticatorMessages.ServerAuthCode message)
+        private void OnRegionServerRequestConnection(INetworkPlayer player, ServerAuthCode message)
         {
             bool passed = message.AuthenticationCode.Equals(_configuration?.GetSection("KeySecret:SecretKey").Value);
 
             if (passed)
             {
-                ServerAccept(player);
                 ServerHasAuthenticated.Invoke(message, player);
+
+                ServerAccept(player);
+
+                player.Send(new ServerAcceptAuthCode());
             }
             else
                 ServerReject(player);
@@ -53,7 +56,7 @@ namespace LUD.Authenticators
                 .AddJsonFile("appsettings.json", false)
                 .Build();
 
-            server.MessageHandler.RegisterHandler<AuthenticatorMessages.ServerAuthCode>(OnRegionServerRequestConnection);
+            server.MessageHandler.RegisterHandler<ServerAuthCode>(OnRegionServerRequestConnection);
         }
 
         /// <summary>
@@ -63,7 +66,7 @@ namespace LUD.Authenticators
         /// <param name="player"></param>
         public override void ServerAuthenticate(INetworkPlayer player)
         {
-            player.Send(new AuthenticatorMessages.ServerRequestAuthCode());
+            // NOOP
         }
 
         /// <summary>
