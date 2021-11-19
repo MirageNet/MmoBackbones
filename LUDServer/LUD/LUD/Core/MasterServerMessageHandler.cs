@@ -21,6 +21,8 @@ namespace LUD.Core
                 {
                     foreach (INetworkPlayer server in servers)
                     {
+                        if (server == player) continue;
+
                         player.Send(packet);
 
                         LogFactory.Log($"Passing information along to server: {server.Connection}", LogType.Log);
