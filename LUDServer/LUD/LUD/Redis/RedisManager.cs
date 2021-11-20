@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using LUD.Logging;
 using Microsoft.Extensions.Configuration;
 using StackExchange.Redis;
 
@@ -12,6 +13,7 @@ namespace LUD.Redis
         private IConfiguration? _configuration;
         private int _databaseNumber;
         private IDatabase _mainDatabase;
+        protected internal readonly ISubscriber RedisSubscriber;
 
         #endregion
 
@@ -34,21 +36,38 @@ namespace LUD.Redis
 
         public RedisManager()
         {
+            LogFactory.Log("[Redis Manager] Booting up.", LogType.Log);
+
             // Build configuration
             _configuration = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetParent(AppContext.BaseDirectory)?.FullName)
                 .AddJsonFile("appsettings.json", false)
                 .Build();
 
-            var test = new ConfigurationOptions
+            var config = new ConfigurationOptions
             {
                 Password = _configuration?.GetSection("Redis:Password").Value,
                 EndPoints = { _configuration?.GetSection("Redis:Connection").Value }
             };
 
-            RedisConnection = ConnectionMultiplexer.Connect(test);
+            try
+            {
+                LogFactory.Log("[Redis Manager] Connecting to redis server.", LogType.Log);
 
-            _mainDatabase = RedisConnection.GetDatabase(_databaseNumber);
+                RedisConnection = ConnectionMultiplexer.Connect(config);
+
+                _mainDatabase = RedisConnection.GetDatabase(_databaseNumber);
+
+                LogFactory.Log($"[Redis Manager] Grabbing database: {_databaseNumber}", LogType.Log);
+
+                RedisSubscriber = RedisConnection.GetSubscriber();
+            }
+            catch (Exception e)
+            {
+                LogFactory.Log(e.Message, LogType.Exception);
+
+                throw new RedisConnectionException(ConnectionFailureType.AuthenticationFailure, e.Message);
+            }
         }
     }
 }

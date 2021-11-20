@@ -1,10 +1,12 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
 using Mirage.Logging;
 using Mirage.Serialization;
 using UnityEngine;
 
 namespace Mirage
 {
-    // TODO Made changes to this class. Maybe have pr to mirage?
     public class MessageHandler : IMessageReceiver
     {
         static readonly ILogger logger = LogFactory.GetLogger(typeof(MessageHandler));
@@ -16,9 +18,9 @@ namespace Mirage
         /// </summary>
         /// <param name="player"></param>
         /// <param name="reader"></param>
-        protected internal delegate void NetworkMessageDelegate(INetworkPlayer player, NetworkReader reader);
+        internal delegate void NetworkMessageDelegate(INetworkPlayer player, NetworkReader reader);
 
-        protected internal readonly Dictionary<int, NetworkMessageDelegate> messageHandlers = new Dictionary<int, NetworkMessageDelegate>();
+        internal readonly Dictionary<int, NetworkMessageDelegate> messageHandlers = new Dictionary<int, NetworkMessageDelegate>();
 
         public MessageHandler(bool disconnectOnException)
         {
@@ -82,7 +84,8 @@ namespace Mirage
             messageHandlers.Clear();
         }
 
-        private void InvokeHandler(INetworkPlayer player, int msgType, NetworkReader reader, ArraySegment<byte> packet)
+
+        internal void InvokeHandler(INetworkPlayer player, int msgType, NetworkReader reader)
         {
             if (messageHandlers.TryGetValue(msgType, out NetworkMessageDelegate msgDelegate))
             {
@@ -120,7 +123,7 @@ namespace Mirage
                 try
                 {
                     int msgType = MessagePacker.UnpackId(networkReader);
-                    InvokeHandler(player, msgType, networkReader, packet);
+                    InvokeHandler(player, msgType, networkReader);
                 }
                 catch (InvalidDataException ex)
                 {

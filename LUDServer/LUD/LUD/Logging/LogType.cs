@@ -1,6 +1,7 @@
 namespace LUD.Logging
 {
-    public enum LogType
+    [Flags]
+    public enum LogType : byte
     {
         Log,
         Warning,

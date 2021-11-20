@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Reflection;
 using LUD.Authenticators;
 using LUD.Logging;
@@ -27,6 +28,18 @@ namespace LUD.Core
         /// <summary>
         /// 
         /// </summary>
+        /// <param name="player"></param>
+        private void OnServerDisconnected(INetworkPlayer player)
+        {
+            byte serverId = _regionServers.FirstOrDefault(x => x.Value.TryGetValue(player, out player)).Key;
+
+            if (serverId > 0)
+                _regionServers[serverId].Remove(player);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
         /// <param name="data"></param>
         /// <param name="player"></param>
         private void OnServerHasAuthenticated(ServerAuthCode data, INetworkPlayer player)
@@ -40,6 +53,13 @@ namespace LUD.Core
             else
             {
                 _regionServers[data.ServerInfo.ServerId].Add(player);
+            }
+
+            Debug.Assert(_redisManager != null, nameof(_redisManager) + " != null");
+
+            if (_redisManager.IsConnected)
+            {
+                _redisManager.RedisSubscriber.Subscribe(data.ServerInfo.ServerId.ToString());
             }
         }
 
@@ -102,6 +122,7 @@ namespace LUD.Core
             authenticator.ServerHasAuthenticated += OnServerHasAuthenticated;
 
             _server = new NetworkServer { SocketFactory = socketFactory, authenticator = authenticator };
+            _server.Disconnected += OnServerDisconnected;
 
             _server.StartServer();
         }
