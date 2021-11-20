@@ -136,7 +136,7 @@ namespace LUD.Core
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine(ex);
+                    LogFactory.Log(ex.Message, LogType.Exception);
                 }
 
                 await Task.Delay(5);

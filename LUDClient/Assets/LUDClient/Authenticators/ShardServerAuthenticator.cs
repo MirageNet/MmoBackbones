@@ -1,3 +1,5 @@
+#if UNITY_SERVER || UNITY_EDITOR || DEVELOPMENT_BUILD
+
 using LUD.DataStructures;
 using LUD.Messages;
 using Mirage;
@@ -45,3 +47,5 @@ namespace LUD.Authenticators
         #endregion
     }
 }
+
+#endif

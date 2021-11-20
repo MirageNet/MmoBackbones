@@ -1,3 +1,5 @@
+#if UNITY_SERVER || UNITY_EDITOR || DEVELOPMENT_BUILD
+
 namespace LUD.DataStructures
 {
     public struct ServerDataInfo
@@ -6,3 +8,5 @@ namespace LUD.DataStructures
         public byte ServerId;
     }
 }
+
+#endif

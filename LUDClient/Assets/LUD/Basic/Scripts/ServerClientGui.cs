@@ -53,7 +53,10 @@ namespace LUD.Examples
                     }
                 }
                 else if (_client.Active)
+                {
                     GUILayout.Label("Client Running.");
+                    _client.Disconnect();
+                }
             }
         }
 

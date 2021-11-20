@@ -1,3 +1,5 @@
+#if UNITY_SERVER || UNITY_EDITOR || DEVELOPMENT_BUILD
+
 using LUD.Authenticators;
 using Mirage;
 using UnityEngine;
@@ -34,16 +36,14 @@ namespace LUD
             _serverInstance.Stopped.AddListener(OnServerStopped);
         }
 
-        #endregion
-
-        /// <summary>
-        ///     Once we connect up as a proxy client for master server / shard we need register
-        ///     messages to allow the data to flow between them.
-        /// </summary>
-        /// <param name="proxyPlayer"></param>
-        private void OnConnected(INetworkPlayer proxyPlayer)
+#if UNITY_EDITOR
+        private void OnValidate()
         {
+
         }
+#endif
+
+#endregion
 
         #region Callback Listener's
 
@@ -57,6 +57,26 @@ namespace LUD
         }
 
         /// <summary>
+        ///     Once we connect up as a proxy client for master server / shard we need register
+        ///     messages to allow the data to flow between them.
+        /// </summary>
+        /// <param name="proxyPlayer"></param>
+        private void OnConnected(INetworkPlayer proxyPlayer)
+        {
+            _masterServerProxyClient.MessageHandler.RegisterHandler<SpawnMessage>(OnSpawnMessageReceived);
+        }
+
+        /// <summary>
+        ///     We received a spawn message from our master server about other shards spawning.
+        /// </summary>
+        /// <param name="message"></param>
+        private void OnSpawnMessageReceived(SpawnMessage message)
+        {
+            // TODO this should really make sure that specific player is within range of the spawn message.
+            NetworkServer.SendToMany(_serverInstance.Players, message);
+        }
+
+        /// <summary>
         ///     Once server has finally shut down we want to disconnect from the master server.
         /// </summary>
         private void OnServerStopped()
@@ -67,3 +87,5 @@ namespace LUD
         #endregion
     }
 }
+
+#endif
