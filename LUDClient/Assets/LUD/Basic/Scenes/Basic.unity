@@ -135,14 +135,13 @@ GameObject:
   - component: {fileID: 228407333}
   - component: {fileID: 228407335}
   - component: {fileID: 228407334}
-  - component: {fileID: 228407336}
   m_Layer: 0
   m_Name: Master Server Connection
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &228407332
 Transform:
   m_ObjectHideFlags: 0
@@ -222,19 +221,6 @@ MonoBehaviour:
   Port: 7777
   SocketLib: 0
   BufferSize: 262144
---- !u!114 &228407336
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 228407331}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e12098ac471b2784185cf3bc6c6ccb3c, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _serverInstance: {fileID: 1525066845}
 --- !u!1 &639084260
 GameObject:
   m_ObjectHideFlags: 0
@@ -573,7 +559,9 @@ GameObject:
   - component: {fileID: 1525066840}
   - component: {fileID: 1525066839}
   - component: {fileID: 1525066838}
+  - component: {fileID: 1525066848}
   - component: {fileID: 1525066847}
+  - component: {fileID: 1525066849}
   m_Layer: 0
   m_Name: NetworkManager
   m_TagString: Untagged
@@ -712,7 +700,7 @@ MonoBehaviour:
   MetricsSize: 10
   SocketFactory: {fileID: 1525066838}
   DisconnectOnException: 1
-  authenticator: {fileID: 0}
+  authenticator: {fileID: 1525066848}
   _started:
     _event:
       m_PersistentCalls:
@@ -747,7 +735,7 @@ MonoBehaviour:
   DisconnectOnException: 1
   Listening: 1
   SocketFactory: {fileID: 1525066838}
-  authenticator: {fileID: 0}
+  authenticator: {fileID: 1525066848}
   _started:
     _event:
       m_PersistentCalls:
@@ -798,9 +786,39 @@ MonoBehaviour:
   m_GameObject: {fileID: 1525066835}
   m_Enabled: 1
   m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e12098ac471b2784185cf3bc6c6ccb3c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _serverInstance: {fileID: 1525066845}
+--- !u!114 &1525066848
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1525066835}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 65e4904919cfd534cafe8ded5520d568, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _secretKey: G97Y&D^W*P_tuFQAAUzwu?ZkmX#_!9R9L#v*rJeLv$zW5EH%fdL7rxSJKxRt
+  _serverName: LUD
+  _serverId: 1
+--- !u!114 &1525066849
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1525066835}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6fd3007baa47ab64496a56425fd4e0a7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _port: 7777
+  _address: localhost
 --- !u!1 &1761579921
 GameObject:
   m_ObjectHideFlags: 0

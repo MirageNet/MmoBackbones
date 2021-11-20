@@ -167,8 +167,9 @@ namespace Mirage
         /// </summary>
         /// <param name="config">Config for <see cref="Peer"/></param>
         /// <param name="localClient">if not null then start the server and client in hostmode</param>
+        /// <param name="messageHandler">The message handler that will interact with incoming messages.</param>
         // Has to be called "StartServer" to stop unity complaining about "Start" method
-        public void StartServer(NetworkClient localClient = null)
+        public void StartServer(IMessageReceiver messageHandler = null, NetworkClient localClient = null)
         {
             ThrowIfActive();
             ThrowIfSocketIsMissing();
@@ -182,9 +183,8 @@ namespace Mirage
             World = new NetworkWorld();
 
             LocalClient = localClient;
-            MessageHandler = new MessageHandler(DisconnectOnException);
+            MessageHandler = (messageHandler == null ? new MessageHandler(DisconnectOnException) : messageHandler) as MessageHandler;
             MessageHandler.RegisterHandler<NetworkPingMessage>(World.Time.OnServerPing);
-
             ISocket socket = SocketFactory.CreateServerSocket();
             var dataHandler = new DataHandler(MessageHandler, connections);
             Metrics = EnablePeerMetrics ? new Metrics() : null;

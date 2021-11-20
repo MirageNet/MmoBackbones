@@ -18,9 +18,9 @@ namespace Mirage
         /// </summary>
         /// <param name="player"></param>
         /// <param name="reader"></param>
-        internal delegate void NetworkMessageDelegate(INetworkPlayer player, NetworkReader reader);
+        protected internal delegate void NetworkMessageDelegate(INetworkPlayer player, NetworkReader reader);
 
-        internal readonly Dictionary<int, NetworkMessageDelegate> messageHandlers = new Dictionary<int, NetworkMessageDelegate>();
+        protected internal readonly Dictionary<int, NetworkMessageDelegate> messageHandlers = new Dictionary<int, NetworkMessageDelegate>();
 
         public MessageHandler(bool disconnectOnException)
         {
@@ -84,8 +84,7 @@ namespace Mirage
             messageHandlers.Clear();
         }
 
-
-        internal void InvokeHandler(INetworkPlayer player, int msgType, NetworkReader reader)
+        protected virtual void InvokeHandler(INetworkPlayer player, int msgType, NetworkReader reader, ArraySegment<byte> packet)
         {
             if (messageHandlers.TryGetValue(msgType, out NetworkMessageDelegate msgDelegate))
             {
@@ -123,7 +122,7 @@ namespace Mirage
                 try
                 {
                     int msgType = MessagePacker.UnpackId(networkReader);
-                    InvokeHandler(player, msgType, networkReader);
+                    InvokeHandler(player, msgType, networkReader, packet);
                 }
                 catch (InvalidDataException ex)
                 {

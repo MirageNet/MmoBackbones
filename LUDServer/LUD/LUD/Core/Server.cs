@@ -1,6 +1,6 @@
-using System.Diagnostics;
 using System.Reflection;
 using LUD.Authenticators;
+using LUD.DataStructures;
 using LUD.Logging;
 using LUD.Messages;
 using LUD.Redis;
@@ -17,7 +17,7 @@ namespace LUD.Core
         #region Fields
 
         private IConfiguration? _configuration;
-        private readonly Dictionary<byte, HashSet<INetworkPlayer>> _regionServers = new();
+        private readonly MasterServerMessageHandler _serverMessageHandler = new MasterServerMessageHandler(true);
         private NetworkServer? _server;
         private RedisManager? _redisManager;
 
@@ -31,10 +31,13 @@ namespace LUD.Core
         /// <param name="player"></param>
         private void OnServerDisconnected(INetworkPlayer player)
         {
-            byte serverId = _regionServers.FirstOrDefault(x => x.Value.TryGetValue(player, out player)).Key;
+            ServerDataInfo serverInfo = _serverMessageHandler.RegionServers.FirstOrDefault(x => x.Value.TryGetValue(player, out player)).Key;
 
-            if (serverId > 0)
-                _regionServers[serverId].Remove(player);
+            if (serverInfo.ServerId <= 0) return;
+
+                LogFactory.Log($"[Master Server] Regional server: {serverInfo.ServerName} shard: {serverInfo.ServerId} is disconnecting from master server.", LogType.Log);
+
+            _serverMessageHandler.RegionServers[serverInfo].Remove(player);
         }
 
         /// <summary>
@@ -44,22 +47,15 @@ namespace LUD.Core
         /// <param name="player"></param>
         private void OnServerHasAuthenticated(ServerAuthCode data, INetworkPlayer player)
         {
-            if (!_regionServers.ContainsKey(data.ServerInfo.ServerId))
+            if (!_serverMessageHandler.RegionServers.ContainsKey(data.ServerInfo))
             {
-                _regionServers.Add(data.ServerInfo.ServerId, new HashSet<INetworkPlayer>());
+                _serverMessageHandler.RegionServers.Add(data.ServerInfo, new HashSet<INetworkPlayer>());
 
-                _regionServers[data.ServerInfo.ServerId].Add(player);
+                _serverMessageHandler.RegionServers[data.ServerInfo].Add(player);
             }
             else
             {
-                _regionServers[data.ServerInfo.ServerId].Add(player);
-            }
-
-            Debug.Assert(_redisManager != null, nameof(_redisManager) + " != null");
-
-            if (_redisManager.IsConnected)
-            {
-                _redisManager.RedisSubscriber.Subscribe(data.ServerInfo.ServerId.ToString());
+                _serverMessageHandler.RegionServers[data.ServerInfo].Add(player);
             }
         }
 
@@ -124,7 +120,7 @@ namespace LUD.Core
             _server = new NetworkServer { SocketFactory = socketFactory, authenticator = authenticator };
             _server.Disconnected += OnServerDisconnected;
 
-            _server.StartServer();
+            _server.StartServer(_serverMessageHandler);
         }
 
         /// <summary>
