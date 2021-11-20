@@ -2,6 +2,7 @@ using System.Reflection;
 using LUD.Authenticators;
 using LUD.Logging;
 using LUD.Messages;
+using LUD.Redis;
 using Mirage;
 using Mirage.Sockets.Udp;
 using UnityEngine;
@@ -15,8 +16,9 @@ namespace LUD.Core
         #region Fields
 
         private IConfiguration? _configuration;
-        private readonly MasterServerMessageHandler _messageHandler = new MasterServerMessageHandler(true);
+        private readonly Dictionary<byte, HashSet<INetworkPlayer>> _regionServers = new();
         private NetworkServer? _server;
+        private RedisManager? _redisManager;
 
         #endregion
 
@@ -29,15 +31,15 @@ namespace LUD.Core
         /// <param name="player"></param>
         private void OnServerHasAuthenticated(ServerAuthCode data, INetworkPlayer player)
         {
-            if (!_messageHandler.RegionServers.ContainsKey(data.ServerInfo.ServerId))
+            if (!_regionServers.ContainsKey(data.ServerInfo.ServerId))
             {
-                _messageHandler.RegionServers.Add(data.ServerInfo.ServerId, new HashSet<INetworkPlayer>());
+                _regionServers.Add(data.ServerInfo.ServerId, new HashSet<INetworkPlayer>());
 
-                _messageHandler.RegionServers[data.ServerInfo.ServerId].Add(player);
+                _regionServers[data.ServerInfo.ServerId].Add(player);
             }
             else
             {
-                _messageHandler.RegionServers[data.ServerInfo.ServerId].Add(player);
+                _regionServers[data.ServerInfo.ServerId].Add(player);
             }
         }
 
@@ -79,6 +81,8 @@ namespace LUD.Core
 
             CreateServer(authenticator);
 
+            _redisManager = new RedisManager();
+
             LogFactory.Log("[Master Server] Listening for new region servers.", LogType.Log);
 
             Update();
@@ -99,7 +103,7 @@ namespace LUD.Core
 
             _server = new NetworkServer { SocketFactory = socketFactory, authenticator = authenticator };
 
-            _server.StartServer(_messageHandler);
+            _server.StartServer();
         }
 
         /// <summary>

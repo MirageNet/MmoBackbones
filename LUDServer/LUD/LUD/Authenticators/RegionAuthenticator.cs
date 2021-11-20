@@ -24,7 +24,7 @@ namespace LUD.Authenticators
         /// <param name="message">The data being sent from regional server to allow connecting.</param>
         private void OnRegionServerRequestConnection(INetworkPlayer player, ServerAuthCode message)
         {
-            bool passed = message.AuthenticationCode.Equals(_configuration?.GetSection("KeySecret:SecretKey").Value);
+            bool passed = message.AuthenticationCode.Equals(_configuration?.GetSection("ServerAuthenticate:SecretKey").Value);
 
             if (passed)
             {

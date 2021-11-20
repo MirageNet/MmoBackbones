@@ -8,12 +8,12 @@
 
   <ItemGroup>
     <Folder Include="Math\" />
-    <Folder Include="Utilities\" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="6.0.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="6.0.0" />
+    <PackageReference Include="StackExchange.Redis" Version="2.2.88" />
   </ItemGroup>
 
 	<Target Name="PostBuild" AfterTargets="PostBuildEvent">

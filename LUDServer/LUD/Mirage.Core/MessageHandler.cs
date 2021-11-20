@@ -82,8 +82,7 @@ namespace Mirage
             messageHandlers.Clear();
         }
 
-
-        protected virtual void InvokeHandler(INetworkPlayer player, int msgType, NetworkReader reader, ArraySegment<byte> packet)
+        private void InvokeHandler(INetworkPlayer player, int msgType, NetworkReader reader, ArraySegment<byte> packet)
         {
             if (messageHandlers.TryGetValue(msgType, out NetworkMessageDelegate msgDelegate))
             {

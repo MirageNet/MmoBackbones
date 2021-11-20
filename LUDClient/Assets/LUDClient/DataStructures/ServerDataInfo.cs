@@ -4,6 +4,5 @@ namespace LUD.DataStructures
     {
         public string ServerName;
         public byte ServerId;
-        public ushort Port;
     }
 }
