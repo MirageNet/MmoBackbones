@@ -27,7 +27,7 @@ namespace LUD.Core
 
                         player.Send(packet);
 
-                        LogFactory.Log($"Passing information along to server: {server.Connection}", LogType.Log);
+                        LogFactory.Log($"Passing message: {msgType} along to server: {server.Connection}", LogType.Log);
                     }
                 }
                 else

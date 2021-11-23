@@ -16,12 +16,6 @@ namespace LUD
         [Tooltip("Main reference to the actual server this instance will be proxy from.")]
         [SerializeField] private NetworkServer _serverInstance;
 
-        [Tooltip("The address to connect to your master server.")]
-        [SerializeField] private string _address = "localhost";
-
-        [Tooltip("The port to use to connect to your master server.")]
-        [SerializeField] private ushort _port = 7777;
-
         private NetworkClient _masterServerProxyClient;
 
         #endregion
@@ -36,14 +30,7 @@ namespace LUD
             _serverInstance.Stopped.AddListener(OnServerStopped);
         }
 
-#if UNITY_EDITOR
-        private void OnValidate()
-        {
-
-        }
-#endif
-
-#endregion
+        #endregion
 
         #region Callback Listener's
 
@@ -53,7 +40,7 @@ namespace LUD
         private void OnServerStart()
         {
             _masterServerProxyClient.Connected.AddListener(OnConnected);
-            _masterServerProxyClient.Connect(_address, _port);
+            _masterServerProxyClient.Connect();
         }
 
         /// <summary>
@@ -63,17 +50,7 @@ namespace LUD
         /// <param name="proxyPlayer"></param>
         private void OnConnected(INetworkPlayer proxyPlayer)
         {
-            _masterServerProxyClient.MessageHandler.RegisterHandler<SpawnMessage>(OnSpawnMessageReceived);
-        }
-
-        /// <summary>
-        ///     We received a spawn message from our master server about other shards spawning.
-        /// </summary>
-        /// <param name="message"></param>
-        private void OnSpawnMessageReceived(SpawnMessage message)
-        {
-            // TODO this should really make sure that specific player is within range of the spawn message.
-            NetworkServer.SendToMany(_serverInstance.Players, message);
+            _serverInstance.AddConnection(_masterServerProxyClient.Player);
         }
 
         /// <summary>
