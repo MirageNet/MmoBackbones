@@ -17,7 +17,7 @@ namespace LUD.Core
             }
             else
             {
-                ServerDataInfo serverId = RegionServers.FirstOrDefault(x => x.Value.TryGetValue(player, out player)).Key;
+                ServerDataInfo serverId = RegionServers.FirstOrDefault(x => x.Value.TryGetValue(player, out _)).Key;
 
                 if(RegionServers.TryGetValue(serverId, out HashSet<INetworkPlayer>? servers))
                 {
@@ -25,31 +25,25 @@ namespace LUD.Core
                     {
                         if (server == player) continue;
 
-                        player.Send(packet);
+                        server.Send(packet);
 
-                        LogFactory.Log($"Passing message: {msgType} along to server: {server.Connection}", LogType.Log);
+                        MessagePacker.MessageTypes.TryGetValue(msgType, out Type type);
+
+                        LogFactory.Log($"[MessageHandler] - Passing message: {type.Name} along to server: {server.Connection}", LogType.Log);
                     }
                 }
                 else
                 {
                     RegionServers.Remove(serverId);
 
-                    try
-                    {
-                        Type type = MessagePacker.GetMessageType(msgType);
-                        throw new InvalidDataException(
-                            $"Unexpected message {type} received in {this}. Did you register a handler for it?");
-                    }
-                    catch (KeyNotFoundException)
-                    {
-                        throw new InvalidDataException(
-                            $"Unexpected message ID {msgType} received in {this}. May be due to no existing RegisterHandler for this message.");
-                    }
+                    logger.Log(MessagePacker.MessageTypes.TryGetValue(msgType, out Type type)
+                        ? $"Unexpected message {type} received from {player}. Did you register a handler for it?"
+                        : $"Unexpected message ID {msgType} received from {player}. May be due to no existing RegisterHandler for this message.");
                 }
             }
         }
 
-        public MasterServerMessageHandler(bool disconnectOnException) : base(disconnectOnException)
+        public MasterServerMessageHandler(IObjectLocator objectLocator, bool disconnectOnException) : base(objectLocator, disconnectOnException)
         {
         }
     }

@@ -77,6 +77,13 @@ namespace Mirage.Serialization
             get => (bitPosition + 0b111) >> 3;
         }
 
+        /// <summary>
+        /// some service object that can find objects by net id
+        /// </summary>
+        // todo try move this somewhere else
+        public IObjectLocator ObjectLocator { get; internal set; }
+
+
         public NetworkReader() { }
 
         ~NetworkReader()
@@ -117,7 +124,8 @@ namespace Mirage.Serialization
             if (needsDisposing)
             {
                 // dispose old handler first
-                Dispose();
+                // false here so we dont release reader back to pool
+                Dispose(false);
             }
 
             // reset disposed bool, as it can be disposed again after reset
@@ -141,14 +149,22 @@ namespace Mirage.Serialization
         }
 
         /// <summary>
-        /// Can atleast <paramref name="byteLength"/> bytes
+        /// Can atleast <paramref name="readCount"/> bits
         /// </summary>
-        /// <param name="byteLength"></param>
         /// <returns></returns>
-        public bool CanReadBytes(int byteLength)
+        public bool CanReadBits(int readCount)
         {
-            return (bitPosition + (byteLength * 8)) <= bitLength;
+            return (bitPosition + readCount) <= bitLength;
+        }
 
+        /// <summary>
+        /// Can atleast <paramref name="readCount"/> bytes
+        /// </summary>
+        /// <param name="readCount"></param>
+        /// <returns></returns>
+        public bool CanReadBytes(int readCount)
+        {
+            return (bitPosition + (readCount * 8)) <= bitLength;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -347,22 +363,21 @@ namespace Mirage.Serialization
         /// <para>
         ///    Moves position to nearest byte then copies struct from that position
         /// </para>
-        /// See <see href="https://docs.unity3d.com/ScriptReference/Unity.Collections.LowLevel.Unsafe.UnsafeUtility.CopyPtrToStructure.html">UnsafeUtility.CopyPtrToStructure</see>
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="value"></param>
         /// <param name="byteSize"></param>
-        //public void PadAndCopy<T>(int byteSize, out T value) where T : struct
-        //{
-        //    PadToByte();
-        //    int newPosition = bitPosition + (64 * byteSize);
-        //    CheckNewLength(newPosition);
+        public void PadAndCopy<T>(int byteSize, out T value) where T : unmanaged
+        {
+            PadToByte();
+            int newPosition = bitPosition + (64 * byteSize);
+            CheckNewLength(newPosition);
 
-        //    byte* startPtr = ((byte*)longPtr) + (bitPosition >> 3);
+            byte* startPtr = ((byte*)longPtr) + (bitPosition >> 3);
 
-        //    UnsafeUtility.CopyPtrToStructure(startPtr, out value);
-        //    bitPosition = newPosition;
-        //}
+            value = *(T*)startPtr;
+            bitPosition = newPosition;
+        }
 
         /// <summary>
         /// <para>

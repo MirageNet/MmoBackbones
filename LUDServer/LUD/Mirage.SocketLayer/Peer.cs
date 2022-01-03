@@ -10,7 +10,7 @@ namespace Mirage.SocketLayer
     }
     internal class Time : ITime
     {
-        public float Now => DateTime.Now.Ticks;
+        public float Now => UnityEngine.Time.time;
     }
 
     public interface IPeer
@@ -22,7 +22,14 @@ namespace Mirage.SocketLayer
         void Bind(IEndPoint endPoint);
         IConnection Connect(IEndPoint endPoint);
         void Close();
-        void Update();
+        /// <summary>
+        /// Call this at the start of the frame to receive new messages
+        /// </summary>
+        void UpdateReceive();
+        /// <summary>
+        /// Call this at end of frame to send new batches
+        /// </summary>
+        void UpdateSent();
     }
 
     /// <summary>
@@ -54,7 +61,7 @@ namespace Mirage.SocketLayer
 
         public Peer(ISocket socket, IDataHandler dataHandler, Config config = null, ILogger logger = null, Metrics metrics = null)
         {
-            this.logger = logger;//?? Debug.unityLogger;
+            this.logger = logger;
             this.metrics = metrics;
             this.config = config ?? new Config();
 
@@ -65,7 +72,7 @@ namespace Mirage.SocketLayer
             connectKeyValidator = new ConnectKeyValidator();
 
             bufferPool = new Pool<ByteBuffer>(ByteBuffer.CreateNew, this.config.MaxPacketSize, this.config.BufferPoolStartSize, this.config.BufferPoolMaxSize, this.logger);
-            //Application.quitting += Application_quitting;
+            Application.quitting += Application_quitting;
         }
 
         private void Application_quitting()
@@ -102,11 +109,11 @@ namespace Mirage.SocketLayer
         {
             if (!active)
             {
-                if (logger.IsLogTypeAllowed(LogType.Warning)) logger.Log(LogType.Warning, "Peer is not active");
+                if (logger.Enabled(LogType.Warning)) logger.Log(LogType.Warning, "Peer is not active");
                 return;
             }
             active = false;
-            //Application.quitting -= Application_quitting;
+            Application.quitting -= Application_quitting;
 
             // send disconnect messages
             foreach (Connection conn in connections.Values)
@@ -123,13 +130,13 @@ namespace Mirage.SocketLayer
         {
             // connecting connections can send connect messages so is allowed
             // todo check connected before message are sent from high level
-            logger.Assert(connection.State == ConnectionState.Connected || connection.State == ConnectionState.Connecting || connection.State == ConnectionState.Disconnected, connection.State);
+            logger?.Assert(connection.State == ConnectionState.Connected || connection.State == ConnectionState.Connecting || connection.State == ConnectionState.Disconnected, connection.State);
 
             socket.Send(connection.EndPoint, data, length);
             metrics?.OnSend(length);
             connection.SetSendTime();
 
-            if (logger.filterLogType == LogType.Log)
+            if (logger.Enabled(LogType.Log))
             {
                 if ((PacketType)data[0] == PacketType.Command)
                 {
@@ -162,7 +169,7 @@ namespace Mirage.SocketLayer
 
                 socket.Send(endPoint, buffer.array, length);
                 metrics?.OnSendUnconnected(length);
-                if (logger.filterLogType == LogType.Log)
+                if (logger.Enabled(LogType.Log))
                 {
                     logger.Log($"Send to {endPoint} type: Command, {command}");
                 }
@@ -215,9 +222,18 @@ namespace Mirage.SocketLayer
             }
         }
 
-        public void Update()
+        /// <summary>
+        /// Call this at the start of the frame to receive new messages
+        /// </summary>
+        public void UpdateReceive()
         {
             ReceiveLoop();
+        }
+        /// <summary>
+        /// Call this at end of frame to send new batches
+        /// </summary>
+        public void UpdateSent()
+        {
             UpdateConnections();
             metrics?.OnTick(connections.Count);
         }
@@ -259,14 +275,14 @@ namespace Mirage.SocketLayer
             // ingore message of invalid size
             if (!packet.IsValidSize())
             {
-                if (logger.filterLogType == LogType.Log)
+                if (logger.Enabled(LogType.Log))
                 {
                     logger.Log($"Receive from {connection} was too small");
                 }
                 return;
             }
 
-            if (logger.filterLogType == LogType.Log)
+            if (logger.Enabled(LogType.Log))
             {
                 if (packet.type == PacketType.Command)
                 {
@@ -287,7 +303,7 @@ namespace Mirage.SocketLayer
                     connection.SetReceiveTime();
 
                 }
-                else if (logger.filterLogType == LogType.Warning) logger.Log(LogType.Warning, $"Receive from {connection} type: {packet.type} while not connected");
+                else if (logger.Enabled(LogType.Warning)) logger.Log(LogType.Warning, $"Receive from {connection} type: {packet.type} while not connected");
 
                 // ignore other messages if not connected
                 return;
@@ -396,7 +412,7 @@ namespace Mirage.SocketLayer
         }
         private void AcceptNewConnection(IEndPoint endPoint)
         {
-            if (logger.IsLogTypeAllowed(LogType.Log)) logger.Log($"Accepting new connection from:{endPoint}");
+            if (logger.Enabled(LogType.Log)) logger.Log($"Accepting new connection from:{endPoint}");
 
             Connection connection = CreateNewConnection(endPoint);
 
@@ -432,7 +448,7 @@ namespace Mirage.SocketLayer
                     break;
 
                 case ConnectionState.Connecting:
-                    logger.Error($"Server connections should not be in {nameof(ConnectionState.Connecting)} state");
+                    logger?.Error($"Server connections should not be in {nameof(ConnectionState.Connecting)} state");
                     break;
             }
         }
@@ -449,7 +465,7 @@ namespace Mirage.SocketLayer
             switch (connection.State)
             {
                 case ConnectionState.Created:
-                    logger.Error($"Accepted Connections should not be in {nameof(ConnectionState.Created)} state");
+                    logger?.Error($"Accepted Connections should not be in {nameof(ConnectionState.Created)} state");
                     break;
 
                 case ConnectionState.Connected:
@@ -472,7 +488,7 @@ namespace Mirage.SocketLayer
                     break;
 
                 default:
-                    logger.Error($"Rejected Connections should not be in {nameof(ConnectionState.Created)} state");
+                    logger?.Error($"Rejected Connections should not be in {nameof(ConnectionState.Created)} state");
                     break;
             }
         }
@@ -497,7 +513,7 @@ namespace Mirage.SocketLayer
 
         internal void FailedToConnect(Connection connection, RejectReason reason)
         {
-            if (logger.IsLogTypeAllowed(LogType.Warning)) logger.Log(LogType.Warning, $"Connection Failed to connect: {reason}");
+            if (logger.Enabled(LogType.Warning)) logger.Log(LogType.Warning, $"Connection Failed to connect: {reason}");
 
             RemoveConnection(connection);
 
@@ -508,7 +524,7 @@ namespace Mirage.SocketLayer
         internal void RemoveConnection(Connection connection)
         {
             // shouldn't be trying to removed a destroyed connected
-            logger.Assert(connection.State != ConnectionState.Destroyed && connection.State != ConnectionState.Removing);
+            logger?.Assert(connection.State != ConnectionState.Destroyed && connection.State != ConnectionState.Removing);
 
             connection.State = ConnectionState.Removing;
             connectionsToRemove.Add(connection);
@@ -547,7 +563,7 @@ namespace Mirage.SocketLayer
                 // value should be removed from dictionary
                 if (!removed)
                 {
-                    logger.Error($"Failed to remove {connection} from connection set");
+                    logger?.Error($"Failed to remove {connection} from connection set");
                 }
             }
             connectionsToRemove.Clear();

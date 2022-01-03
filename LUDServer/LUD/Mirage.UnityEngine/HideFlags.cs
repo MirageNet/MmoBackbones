@@ -1,8 +1,12 @@
+﻿using System;
+
 namespace UnityEngine
 {
-    public enum HideFlags : byte
+    [Obsolete("Un-used")]
+    public enum HideFlags
     {
+        None = 0,
         NotEditable,
-        HideAndDontSave
+        HideAndDontSave,
     }
 }

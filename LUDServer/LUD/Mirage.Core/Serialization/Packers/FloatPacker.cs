@@ -24,10 +24,10 @@ SOFTWARE.
 
 using System;
 using System.Runtime.CompilerServices;
+using UnityEngine;
 
 namespace Mirage.Serialization
 {
-
     /// <summary>
     /// Helps compresses a float into a reduced number of bits
     /// </summary>
@@ -112,15 +112,14 @@ namespace Mirage.Serialization
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public uint PackNoClamp(float value)
         {
-            return 0;
-            //return (uint)Mathf.RoundToInt(value * multiplier_pack) & mask;
+            return (uint)Mathf.RoundToInt(value * multiplier_pack) & mask;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void PackNoClamp(NetworkWriter writer, float value)
         {
             // dont need to mask value here because the Write function will mask it
-            //writer.Write((uint)Mathf.RoundToInt(value * multiplier_pack), bitCount);
+            writer.Write((uint)Mathf.RoundToInt(value * multiplier_pack), bitCount);
         }
 
 

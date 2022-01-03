@@ -1,10 +1,10 @@
 {
   "dependencies": {
     "com.cysharp.unitask": "2.2.5",
-    "com.miragenet.mirage": "112.0.1",
+    "com.miragenet.mirage": "https://github.com/MirageNet/Mirage.git?path=/Assets/Mirage#ServerId_Addon",
     "com.unity.2d.sprite": "1.0.0",
     "com.unity.2d.tilemap": "1.0.0",
-    "com.unity.ide.rider": "3.0.7",
+    "com.unity.ide.rider": "3.0.9",
     "com.unity.ide.visualstudio": "2.0.12",
     "com.unity.test-framework": "1.1.30",
     "com.unity.textmeshpro": "3.0.6",

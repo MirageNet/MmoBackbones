@@ -5,6 +5,7 @@ using Mirage.Weaver.Serialization;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Mono.Cecil.Rocks;
+using CollectionExtensions = Mirage.Serialization.CollectionExtensions;
 
 namespace Mirage.Weaver
 {
@@ -14,9 +15,16 @@ namespace Mirage.Weaver
         public Writers(ModuleDefinition module, IWeaverLogger logger) : base(module, logger) { }
 
         protected override string FunctionTypeLog => "write function";
-        protected override Expression<Action> ArrayExpression => () => Mirage.Serialization.CollectionExtensions.WriteArray<byte>(default, default);
-        protected override Expression<Action> ListExpression => () => Mirage.Serialization.CollectionExtensions.WriteList<byte>(default, default);
+        protected override Expression<Action> ArrayExpression => () => CollectionExtensions.WriteArray<byte>(default, default);
+        protected override Expression<Action> ListExpression => () => CollectionExtensions.WriteList<byte>(default, default);
         protected override Expression<Action> NullableExpression => () => SystemTypesExtensions.WriteNullable<byte>(default, default);
+
+        protected override MethodReference GetNetworkBehaviourFunction(TypeReference typeReference)
+        {
+            MethodReference writeFunc = module.ImportReference<NetworkWriter>((nw) => nw.WriteNetworkBehaviour(default));
+            Register(typeReference, writeFunc);
+            return writeFunc;
+        }
 
         protected override MethodReference GenerateEnumFunction(TypeReference typeReference)
         {
@@ -126,7 +134,7 @@ namespace Mirage.Weaver
 
         protected override MethodReference GenerateSegmentFunction(TypeReference typeReference, TypeReference elementType)
         {
-            Expression<Action> segmentExpression = () => Mirage.Serialization.CollectionExtensions.WriteArraySegment<byte>(default, default);
+            Expression<Action> segmentExpression = () => CollectionExtensions.WriteArraySegment<byte>(default, default);
             return GenerateCollectionFunction(typeReference, elementType, segmentExpression);
         }
         protected override MethodReference GenerateCollectionFunction(TypeReference typeReference, TypeReference elementType, Expression<Action> genericExpression)

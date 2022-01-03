@@ -8,7 +8,7 @@ namespace Mirage
     {
         public static void RunMethods()
         {
-            var asm = Assembly.GetEntryAssembly();
+            var asm = Assembly.GetCallingAssembly();
 
             MethodInfo[] methods = asm.GetTypes()
                 .SelectMany(t => t.GetMethods())

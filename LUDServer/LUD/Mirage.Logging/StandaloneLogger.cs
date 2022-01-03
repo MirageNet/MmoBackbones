@@ -14,7 +14,7 @@ namespace Mirage.Logging
             // set initial log handler to be itself
             logHandler = this;
             filterLogType = LogType.Log;
-            logEnabled = false;
+            logEnabled = true;
         }
 
         public bool IsLogTypeAllowed(LogType logType)

@@ -20,5 +20,10 @@ namespace Mirage.SocketLayer
         {
             logger.Log(LogType.Warning, msg);
         }
+
+        internal static bool Enabled(this ILogger logger, LogType logType)
+        {
+            return logger != null && logger.IsLogTypeAllowed(logType);
+        }
     }
 }

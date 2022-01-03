@@ -3,7 +3,8 @@ namespace LUD.DataStructures
     public struct ServerDataInfo
     {
         public string ServerName;
-        public byte ServerId;
+        public byte ShardId;
+        public byte MapId;
     }
 
     public class ServerDataInfoComparer : IEqualityComparer<ServerDataInfo>
@@ -17,7 +18,7 @@ namespace LUD.DataStructures
         /// <see langword="true" /> if the specified objects are equal; otherwise, <see langword="false" />.</returns>
         public bool Equals(ServerDataInfo x, ServerDataInfo y)
         {
-            return x.ServerId == y.ServerId;
+            return x.MapId == y.MapId;
         }
 
         /// <summary>Returns a hash code for the specified object.</summary>
@@ -26,7 +27,7 @@ namespace LUD.DataStructures
         /// <returns>A hash code for the specified object.</returns>
         public int GetHashCode(ServerDataInfo obj)
         {
-            return obj.ServerId;
+            return obj.MapId;
         }
 
         #endregion

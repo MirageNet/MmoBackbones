@@ -8,14 +8,14 @@
       "url": "https://package.openupm.com"
     },
     "com.miragenet.mirage": {
-      "version": "112.0.1",
+      "version": "https://github.com/MirageNet/Mirage.git?path=/Assets/Mirage#ServerId_Addon",
       "depth": 0,
-      "source": "registry",
+      "source": "git",
       "dependencies": {
         "com.unity.nuget.mono-cecil": "1.10.1",
         "com.cysharp.unitask": "2.0.36"
       },
-      "url": "https://package.openupm.com"
+      "hash": "6e0da41a2daf9919f3e444743e25d07c6f2cc93e"
     },
     "com.unity.2d.sprite": {
       "version": "1.0.0",
@@ -37,7 +37,7 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.ide.rider": {
-      "version": "3.0.7",
+      "version": "3.0.9",
       "depth": 0,
       "source": "registry",
       "dependencies": {

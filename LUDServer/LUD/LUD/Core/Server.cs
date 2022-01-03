@@ -1,13 +1,13 @@
-using System.Reflection;
 using LUD.Authenticators;
 using LUD.DataStructures;
-using LUD.Logging;
 using LUD.Messages;
 using LUD.Redis;
 using Mirage;
 using Mirage.Sockets.Udp;
 using UnityEngine;
 using Microsoft.Extensions.Configuration;
+using Mirage.Logging;
+using LogFactory = LUD.Logging.LogFactory;
 using LogType = LUD.Logging.LogType;
 
 namespace LUD.Core
@@ -17,7 +17,7 @@ namespace LUD.Core
         #region Fields
 
         private IConfiguration? _configuration;
-        private readonly MasterServerMessageHandler _serverMessageHandler = new MasterServerMessageHandler(true);
+        private MasterServerMessageHandler _serverMessageHandler;
         private NetworkServer? _server;
         private RedisManager? _redisManager;
 
@@ -31,11 +31,14 @@ namespace LUD.Core
         /// <param name="player"></param>
         private void OnServerDisconnected(INetworkPlayer player)
         {
-            ServerDataInfo serverInfo = _serverMessageHandler.RegionServers.FirstOrDefault(x => x.Value.TryGetValue(player, out player)).Key;
+            ServerDataInfo serverInfo = _serverMessageHandler.RegionServers
+                .FirstOrDefault(x => x.Value.TryGetValue(player, out _)).Key;
 
-            if (serverInfo.ServerId <= 0) return;
+            if (serverInfo.MapId <= 0) return;
 
-                LogFactory.Log($"[Master Server] Regional server: {serverInfo.ServerName} shard: {serverInfo.ServerId} is disconnecting from master server.", LogType.Log);
+            LogFactory.Log(
+                $"[Master Server] - Regional server: {serverInfo.ServerName} shard: {serverInfo.ShardId} is disconnecting from master server.",
+                LogType.Log);
 
             _serverMessageHandler.RegionServers[serverInfo].Remove(player);
         }
@@ -52,10 +55,18 @@ namespace LUD.Core
                 _serverMessageHandler.RegionServers.Add(data.ServerInfo, new HashSet<INetworkPlayer>());
 
                 _serverMessageHandler.RegionServers[data.ServerInfo].Add(player);
+
+                LogFactory.Log(
+                    $"[Master Server] - New server spun up. Server:{data.ServerInfo.ServerName} shard: {data.ServerInfo.ShardId} for map: {data.ServerInfo.MapId}",
+                    LogType.Log);
             }
             else
             {
                 _serverMessageHandler.RegionServers[data.ServerInfo].Add(player);
+
+                LogFactory.Log(
+                    $"[Master Server] - Adding new shard: {data.ServerInfo.ShardId} for map: {data.ServerInfo.MapId} on {data.ServerInfo.ServerName}",
+                    LogType.Log);
             }
         }
 
@@ -84,7 +95,7 @@ namespace LUD.Core
         /// <param name="authenticator">The type of authenticator we want to use for this server.</param>
         private void Initialize(RegionAuthenticator authenticator)
         {
-            LogFactory.Log("[Master Server] Booting up.", LogType.Log);
+            LogFactory.Log("[Master Server] - Booting up.", LogType.Log);
 
             // Build configuration
             _configuration = new ConfigurationBuilder()
@@ -92,14 +103,16 @@ namespace LUD.Core
                 .AddJsonFile("appsettings.json", false)
                 .Build();
 
+            Debug.unityLogger = new StandaloneLogger();
+
             // This allows us to fire up mirage internal code to mimic unity system.
-            RunInitializeMethods();
+            InitializeReadWrite.RunMethods();
 
             CreateServer(authenticator);
 
             _redisManager = new RedisManager();
 
-            LogFactory.Log("[Master Server] Listening for new region servers.", LogType.Log);
+            LogFactory.Log("[Master Server] - Listening for new region servers.", LogType.Log);
 
             Update();
         }
@@ -118,8 +131,9 @@ namespace LUD.Core
             authenticator.ServerHasAuthenticated += OnServerHasAuthenticated;
 
             _server = new NetworkServer { SocketFactory = socketFactory, authenticator = authenticator };
-            _server.Disconnected += OnServerDisconnected;
+            _server.Disconnected.AddListener(OnServerDisconnected);
 
+            _serverMessageHandler = new MasterServerMessageHandler(_server.World, true);
             _server.StartServer(_serverMessageHandler);
         }
 
@@ -144,29 +158,11 @@ namespace LUD.Core
         }
 
         /// <summary>
-        ///     Initializes mirage to run.
-        /// </summary>
-        private void RunInitializeMethods()
-        {
-            var asm = Assembly.GetExecutingAssembly();
-
-            MethodInfo[] methods = asm.GetTypes()
-                .SelectMany(t => t.GetMethods())
-                .Where(m => m.GetCustomAttributes(typeof(RuntimeInitializeOnLoadMethodAttribute), false).Length > 0)
-                .ToArray();
-
-            foreach (MethodInfo method in methods)
-            {
-                method.Invoke(null, null);
-            }
-        }
-
-        /// <summary>
         ///     Shutdown server.
         /// </summary>
         public void Shutdown()
         {
-            LogFactory.Log("[Master Server] Shutting down.", LogType.Log);
+            LogFactory.Log("[Master Server] - Shutting down.", LogType.Log);
         }
 
         #endregion

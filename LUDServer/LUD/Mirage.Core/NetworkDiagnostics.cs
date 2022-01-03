@@ -80,7 +80,7 @@ namespace Mirage
         /// <typeparam name="T"></typeparam>
         /// <param name="reader"></param>
         /// <returns></returns>
-        public static T ReadWithDiagnostics<T>(NetworkReader reader)
+        internal static T ReadWithDiagnostics<T>(NetworkReader reader)
         {
             var message = default(T);
 

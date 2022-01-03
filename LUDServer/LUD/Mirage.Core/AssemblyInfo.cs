@@ -1,4 +1,7 @@
+using System.Reflection;
 using System.Runtime.CompilerServices;
+
+//[assembly: AssemblyVersion("114.0.1")]
 
 [assembly: InternalsVisibleTo("Mirage.Tests.Common")]
 [assembly: InternalsVisibleTo("Mirage.Tests")]
@@ -8,4 +11,6 @@ using System.Runtime.CompilerServices;
 [assembly: InternalsVisibleTo("Mirage.Tests.Performance.Editor")]
 [assembly: InternalsVisibleTo("Mirage.Tests.Performance.Runtime")]
 [assembly: InternalsVisibleTo("Mirage.Editor")]
-[assembly: InternalsVisibleTo("Weaver")]
+[assembly: InternalsVisibleTo("Mirage.Weaver")]
+
+[assembly: InternalsVisibleTo("Mirage.Standalone")]

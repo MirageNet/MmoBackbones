@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using Mirage.Logging;
 using Mirage.Serialization;
 using UnityEngine;
@@ -9,22 +8,24 @@ namespace Mirage
 {
     public class MessageHandler : IMessageReceiver
     {
-        static readonly ILogger logger = LogFactory.GetLogger(typeof(MessageHandler));
+        protected static readonly ILogger logger = LogFactory.GetLogger(typeof(MessageHandler));
 
         readonly bool disconnectOnException;
+        readonly IObjectLocator objectLocator;
 
         /// <summary>
         /// Handles network messages on client and server
         /// </summary>
         /// <param name="player"></param>
         /// <param name="reader"></param>
-        protected internal delegate void NetworkMessageDelegate(INetworkPlayer player, NetworkReader reader);
+        protected internal  delegate void NetworkMessageDelegate(INetworkPlayer player, NetworkReader reader);
 
         protected internal readonly Dictionary<int, NetworkMessageDelegate> messageHandlers = new Dictionary<int, NetworkMessageDelegate>();
 
-        public MessageHandler(bool disconnectOnException)
+        public MessageHandler(IObjectLocator objectLocator, bool disconnectOnException)
         {
             this.disconnectOnException = disconnectOnException;
+            this.objectLocator = objectLocator;
         }
 
         private static NetworkMessageDelegate MessageWrapper<T>(MessageDelegateWithPlayer<T> handler)
@@ -49,7 +50,7 @@ namespace Mirage
             int msgType = MessagePacker.GetId<T>();
             if (logger.filterLogType == LogType.Log && messageHandlers.ContainsKey(msgType))
             {
-                logger.Log("RegisterHandler replacing " + msgType);
+                logger.Log($"RegisterHandler replacing {msgType}");
             }
             messageHandlers[msgType] = MessageWrapper(handler);
         }
@@ -84,7 +85,8 @@ namespace Mirage
             messageHandlers.Clear();
         }
 
-        protected virtual void InvokeHandler(INetworkPlayer player, int msgType, NetworkReader reader, ArraySegment<byte> packet)
+
+        protected virtual void InvokeHandler(INetworkPlayer player, int msgType, NetworkReader reader, ArraySegment<byte> arraySegment)
         {
             if (messageHandlers.TryGetValue(msgType, out NetworkMessageDelegate msgDelegate))
             {
@@ -92,14 +94,13 @@ namespace Mirage
             }
             else
             {
-                try
+                if (MessagePacker.MessageTypes.TryGetValue(msgType, out Type type))
                 {
-                    Type type = MessagePacker.GetMessageType(msgType);
-                    throw new InvalidDataException($"Unexpected message {type} received in {this}. Did you register a handler for it?");
+                    logger.Log($"Unexpected message {type} received from {player}. Did you register a handler for it?");
                 }
-                catch (KeyNotFoundException)
+                else
                 {
-                    throw new InvalidDataException($"Unexpected message ID {msgType} received in {this}. May be due to no existing RegisterHandler for this message.");
+                    logger.Log($"Unexpected message ID {msgType} received from {player}. May be due to no existing RegisterHandler for this message.");
                 }
             }
         }
@@ -108,6 +109,9 @@ namespace Mirage
         {
             using (PooledNetworkReader networkReader = NetworkReaderPool.GetReader(packet))
             {
+                // set ObjectLocator so that message can use NetworkIdentity
+                networkReader.ObjectLocator = objectLocator;
+
                 // protect against attackers trying to send invalid data packets
                 // exception could be throw if:
                 // - invalid headers
@@ -130,7 +134,7 @@ namespace Mirage
                 }
                 catch (Exception e)
                 {
-                    string disconnectMessage = disconnectOnException ? $", Closed connection: {this}" : "";
+                    string disconnectMessage = disconnectOnException ? $", Closed connection: {player}" : "";
                     logger.LogError($"{e.GetType()} in Message handler (see stack below){disconnectMessage}\n{e}");
                     if (disconnectOnException)
                     {

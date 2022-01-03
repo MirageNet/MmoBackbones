@@ -10,7 +10,7 @@ namespace LUD.Logging
 
         public static void Log(string message, LogType logType)
         {
-            if((LogType & logType) > LogType.Log) return;
+            if ((byte)LogType < (byte)logType) return;
 
             switch (logType)
             {

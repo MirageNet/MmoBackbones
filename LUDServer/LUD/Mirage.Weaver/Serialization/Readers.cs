@@ -5,6 +5,8 @@ using Mirage.Weaver.Serialization;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Mono.Cecil.Rocks;
+using UnityEngine;
+using CollectionExtensions = Mirage.Serialization.CollectionExtensions;
 
 namespace Mirage.Weaver
 {
@@ -14,9 +16,21 @@ namespace Mirage.Weaver
 
         protected override string FunctionTypeLog => "read function";
 
-        protected override Expression<Action> ArrayExpression => () => Mirage.Serialization.CollectionExtensions.ReadArray<byte>(default);
-        protected override Expression<Action> ListExpression => () => Mirage.Serialization.CollectionExtensions.ReadList<byte>(default);
+        protected override Expression<Action> ArrayExpression => () => CollectionExtensions.ReadArray<byte>(default);
+        protected override Expression<Action> ListExpression => () => CollectionExtensions.ReadList<byte>(default);
         protected override Expression<Action> NullableExpression => () => SystemTypesExtensions.ReadNullable<byte>(default);
+
+        protected override MethodReference GetNetworkBehaviourFunction(TypeReference typeReference)
+        {
+            ReadMethod readMethod = GenerateReaderFunction(typeReference);
+            ILProcessor worker = readMethod.worker;
+
+            worker.Append(worker.Create(OpCodes.Ldarg_0));
+            worker.Append(worker.Create<NetworkReader>(OpCodes.Call, (reader) => reader.ReadNetworkBehaviour()));
+            worker.Append(worker.Create(OpCodes.Castclass, typeReference));
+            worker.Append(worker.Create(OpCodes.Ret));
+            return readMethod.definition;
+        }
 
         protected override MethodReference GenerateEnumFunction(TypeReference typeReference)
         {
@@ -158,14 +172,14 @@ namespace Mirage.Weaver
                 worker.Append(worker.Create(OpCodes.Ldloca, variable));
                 worker.Append(worker.Create(OpCodes.Initobj, type));
             }
-            //else if (td.IsDerivedFrom<ScriptableObject>())
-            //{
-            //    MethodReference createScriptableObjectInstance = worker.Body.Method.Module.ImportReference(() => ScriptableObject.CreateInstance<ScriptableObject>());
-            //    var genericInstanceMethod = new GenericInstanceMethod(createScriptableObjectInstance.GetElementMethod());
-            //    genericInstanceMethod.GenericArguments.Add(type);
-            //    worker.Append(worker.Create(OpCodes.Call, genericInstanceMethod));
-            //    worker.Append(worker.Create(OpCodes.Stloc, variable));
-            //}
+            else if (td.IsDerivedFrom<ScriptableObject>())
+            {
+                MethodReference createScriptableObjectInstance = worker.Body.Method.Module.ImportReference(() => ScriptableObject.CreateInstance<ScriptableObject>());
+                var genericInstanceMethod = new GenericInstanceMethod(createScriptableObjectInstance.GetElementMethod());
+                genericInstanceMethod.GenericArguments.Add(type);
+                worker.Append(worker.Create(OpCodes.Call, genericInstanceMethod));
+                worker.Append(worker.Create(OpCodes.Stloc, variable));
+            }
             else
             {
                 // classes are created with their constructor
