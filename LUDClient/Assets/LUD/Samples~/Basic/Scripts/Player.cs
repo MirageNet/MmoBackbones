@@ -1,3 +1,4 @@
+using LUD;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -41,7 +42,10 @@ namespace Mirage.Examples.Basic
         public void OnStartServer()
         {
             // Set SyncVar values
-            playerNo = (int)NetId;
+
+            FindObjectOfType<NetIdGenerator>().UnPackShardId(NetId, out uint netId, out byte serverId);
+
+            playerNo = (int)netId;
             playerColor = Random.ColorHSV(0f, 1f, 0.9f, 0.9f, 1f, 1f);
 
             // Start generating updates
@@ -61,14 +65,16 @@ namespace Mirage.Examples.Basic
             // Make this a child of the layout panel in the Canvas
             transform.SetParent(GameObject.Find("PlayersPanel").transform);
 
+            FindObjectOfType<NetIdGenerator>().UnPackShardId(NetId, out _, out byte serverId);
+
             // Calculate position in the layout panel
-            int x = 100 + ((playerNo + Identity.ServerId % 4) * 150);
-            int y = -170 - ((playerNo + Identity.ServerId / 2) * 80);
+            int x = 100 + ((playerNo + serverId % 4) * 150);
+            int y = -170 - ((playerNo + serverId / 2) * 80);
             rectTransform.anchoredPosition = new Vector2(x, y);
 
             // Apply SyncVar values
             playerNameText.color = playerColor;
-            playerNameText.text = $"Player {playerNo:00} Playing on serverId: {ServerId}";
+            playerNameText.text = $"Player {playerNo:00} ServerId {serverId:00}";
         }
 
         // This only fires on the local client when this player object is network-ready

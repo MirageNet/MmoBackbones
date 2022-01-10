@@ -1,5 +1,6 @@
 #if UNITY_SERVER || UNITY_EDITOR || DEVELOPMENT_BUILD
 
+using System;
 using LUD.Authenticators;
 using Mirage;
 using UnityEngine;
@@ -13,8 +14,8 @@ namespace LUD
 
         [Header("Master Server Setup")]
 
-        [Tooltip("Main reference to the actual server this instance will be proxy from.")]
-        [SerializeField] private NetworkServer _serverInstance;
+        [Tooltip("Main reference to the actual server object manager.")]
+        [SerializeField] private ServerObjectManager _serverInstance;
 
         private NetworkClient _masterServerProxyClient;
 
@@ -26,8 +27,9 @@ namespace LUD
         {
             _masterServerProxyClient = GetComponent<NetworkClient>();
 
-            _serverInstance.Started.AddListener(OnServerStart);
-            _serverInstance.Stopped.AddListener(OnServerStopped);
+            _serverInstance.NetIdGenerator = _serverInstance.GetComponent<NetIdGenerator>();
+            _serverInstance.Server.Started.AddListener(OnServerStart);
+            _serverInstance.Server.Stopped.AddListener(OnServerStopped);
         }
 
         #endregion
@@ -39,9 +41,6 @@ namespace LUD
         /// </summary>
         private void OnServerStart()
         {
-            // Disable listening for connections until we are fully ready.
-            _serverInstance.Listening = false;
-
             _masterServerProxyClient.Connected.AddListener(OnConnected);
             _masterServerProxyClient.Connect();
         }
@@ -53,10 +52,14 @@ namespace LUD
         /// <param name="proxyPlayer"></param>
         private void OnConnected(INetworkPlayer proxyPlayer)
         {
-            _serverInstance.AddConnection(_masterServerProxyClient.Player);
+            _serverInstance.Server.AddConnection(_masterServerProxyClient.Player);
 
             _masterServerProxyClient.MessageHandler.RegisterHandler<SpawnMessage>(OnReceivedMessageToRelay);
             _masterServerProxyClient.MessageHandler.RegisterHandler<UpdateVarsMessage>(OnReceivedMessageToRelay);
+            _masterServerProxyClient.MessageHandler.RegisterHandler<ObjectDestroyMessage>(OnReceivedMessageToRelay);
+            _masterServerProxyClient.MessageHandler.RegisterHandler<ObjectHideMessage>(OnReceivedMessageToRelay);
+            _masterServerProxyClient.MessageHandler.RegisterHandler<RemoveAuthorityMessage>(OnReceivedMessageToRelay);
+            _masterServerProxyClient.MessageHandler.RegisterHandler<RemoveCharacterMessage>(OnReceivedMessageToRelay);
         }
 
         /// <summary>
@@ -70,15 +73,29 @@ namespace LUD
             // or the aoi system the current objects using will spawn it. For now we will just
             // send the spawn message to all clients regardless.
 
-            foreach (INetworkPlayer player in _serverInstance.Players)
-            {
-                if (_masterServerProxyClient.Player == player) continue;
+            //Type itemType = typeof(T);
 
-                player.Send(msg);
-            }
+            //if (itemType == typeof(SpawnMessage))
+            //{
+            //    foreach (INetworkPlayer player in _serverInstance.Server.Players)
+            //    {
+            //        if (_masterServerProxyClient.Player == player) continue;
+
+            //        _serverInstance.SpawnVisibleObjects(player);
+            //    }
+            //}
+            //else
+            //{
+                foreach (INetworkPlayer player in _serverInstance.Server.Players)
+                {
+                    if (_masterServerProxyClient.Player == player) continue;
+
+                    player.Send(msg);
+                }
+            //}
         }
 
-        /// <summary>
+            /// <summary>
         ///     Once server has finally shut down we want to disconnect from the master server.
         /// </summary>
         private void OnServerStopped()

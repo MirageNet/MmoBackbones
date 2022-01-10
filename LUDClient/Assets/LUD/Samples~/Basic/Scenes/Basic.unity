@@ -203,7 +203,6 @@ GameObject:
   - component: {fileID: 1104414062}
   - component: {fileID: 1104414061}
   - component: {fileID: 1104414060}
-  - component: {fileID: 1104414064}
   m_Layer: 0
   m_Name: Shard Connection
   m_TagString: Untagged
@@ -254,7 +253,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e12098ac471b2784185cf3bc6c6ccb3c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _serverInstance: {fileID: 1525066845}
+  _serverInstance: {fileID: 1525066841}
 --- !u!114 &1104414062
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -269,7 +268,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _secretKey: G97Y&D^W*P_tuFQAAUzwu?ZkmX#_!9R9L#v*rJeLv$zW5EH%fdL7rxSJKxRt
   _serverName: LUD
-  _shardId: 1
+  _shardId: 2
   _mapId: 1
 --- !u!114 &1104414063
 MonoBehaviour:
@@ -304,18 +303,6 @@ MonoBehaviour:
     _event:
       m_PersistentCalls:
         m_Calls: []
---- !u!114 &1104414064
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1104414058}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 91644080b4f449b41818f29c57563ed5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &1118422504
 GameObject:
   m_ObjectHideFlags: 0
@@ -609,7 +596,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Address: localhost
-  Port: 7778
+  Port: 7779
   SocketLib: 0
   BufferSize: 262144
 --- !u!114 &1525066839
@@ -664,7 +651,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Server: {fileID: 1525066845}
   NetworkSceneManager: {fileID: 1525066842}
-  NextServerIdGenerator: {fileID: 1104414064}
 --- !u!114 &1525066842
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -830,10 +816,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 1525066835}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ac6e8eccf4b6f4dc7b24c276ef47fde8, type: 3}
+  m_Script: {fileID: 11500000, guid: 91644080b4f449b41818f29c57563ed5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  settings: {fileID: 11400000, guid: 7ce1122f125e7734a9c0ccb68443cce6, type: 2}
+  ShardServerAuthenticator: {fileID: 1104414062}
 --- !u!1 &1761579921
 GameObject:
   m_ObjectHideFlags: 0
